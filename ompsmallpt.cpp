@@ -64,8 +64,8 @@ inline bool intersect(const Ray &r, double &t, int &id){
   double n=sizeof(spheres)/sizeof(Sphere), d, inf=t=1e20;
 
 //  #pragma omp parallel for lastprivate(t,id)
-  for(int i=int(n);i--;)
-    if((d=spheres[i].intersect(r))&&d<t){
+  for(int i=int(n);i--;) //ompsmallpt.cpp:67:21: missed: not vectorized: control flow in loop.
+    if((d=spheres[i].intersect(r)) && d<t){
       t=d;id=i;
     }
   return t<inf;
@@ -88,7 +88,7 @@ Vec radiance(const Ray &r, int depth, unsigned short *Xi){
      if (erand48(Xi)<p)
         f=f*(1/p);
      else
-        return obj.e;
+        return obj.e; //ompsmallpt.cpp:91:20: missed: not vectorized: more than one data ref in stmt: <retval> = MEM[(const struct Sphere &)&spheres][id_23].e;
   }//R.R.
 
   if (obj.refl == DIFF){                  // Ideal DIFFUSE reflection
@@ -116,8 +116,8 @@ Vec radiance(const Ray &r, int depth, unsigned short *Xi){
   double Re=R0+(1-R0)*c*c*c*c*c,Tr=1-Re,P=.25+.5*Re,RP=Re/P,TP=Tr/(1-P);
 
   return obj.e + f.mult(depth>2 ? (erand48(Xi)<P ?   // Russian roulette
-    radiance(reflRay,depth,Xi)*RP:radiance(Ray(x,tdir),depth,Xi)*TP) :
-    radiance(reflRay,depth,Xi)*Re+radiance(Ray(x,tdir),depth,Xi)*Tr);
+    radiance(reflRay,depth,Xi)*RP:radiance(Ray(x,tdir),depth,Xi)*TP) : //ompsmallpt.cpp:119:30: missed: not vectorized: statement can throw an exception: D.10230 = radiance (&reflRay, depth_64, Xi_66(D)); [return slot optimization]
+    radiance(reflRay,depth,Xi)*Re+radiance(Ray(x,tdir),depth,Xi)*Tr); //ompsmallpt.cpp:120:64: missed: not vectorized: statement can throw an exception: D.10243 = radiance (&D.10242, depth_64, Xi_66(D)); [return slot optimization]
 }
 
 int main(int argc, char *argv[]){
@@ -137,7 +137,7 @@ int main(int argc, char *argv[]){
    {
         printf("allocated threads = %d \n",omp_get_num_threads());
    }
-  #pragma omp for ordered schedule(dynamic)
+  #pragma omp for ordered schedule(static, 1)
   for (int y=0; y<h; y++){                       // Loop over image rows
     fprintf(stderr,"\rRendering (%d spp) %5.2f%%",samps*4,100.*y/(h-1));
 
