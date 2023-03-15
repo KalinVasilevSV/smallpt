@@ -1,0 +1,28 @@
+# smallpt Makefile
+#
+
+# Select appropriate compiler.
+CPP=g++
+CPPFLAGS=-O3 -xc++ -ftree-vectorize -fopt-info-vec -fopt-info-vec-missed -funsafe-math-optimizations -fopenmp
+
+ifdef DEBUG
+CPPFLAGS=-g
+endif
+
+default: omp
+
+omp: ompsmallpt
+
+ompsmallpt: ompsmallpt.cpp cppOmpMakefile
+	$(CPP) $(CPPFLAGS) -o ompsmallpt ompsmallpt.cpp 
+
+clean:
+	-rm ompsmallpt
+
+DISTNAME = ompsmallpt
+DISTFILES = README LICENSE.txt ompsmallpt.cpp cppOmpMakefile result_25k.png
+
+SRCS = $(CFILES) $(C++FILES) $(C++FILES:%.cxx=%.h)
+
+others:
+	$(CPP) $(CPPFLAGS)
