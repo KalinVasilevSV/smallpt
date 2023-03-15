@@ -125,10 +125,12 @@ int main(int argc, char *argv[]){
   Ray cam(Vec(50,52,295.6), Vec(0,-0.042612,-1).norm()); // cam pos, dir
   Vec cx=Vec(w*.5135/h), cy=(cx%cam.d).norm()*.5135, r, *c=new Vec[w*h];
 
+  double start, end;
   int max_threads = omp_get_max_threads();
   printf("max possible threads = %d \n",max_threads);
   omp_set_num_threads(max_threads);
 
+  start = omp_get_wtime();
   #pragma omp parallel
   {
    #pragma omp master
@@ -157,7 +159,11 @@ int main(int argc, char *argv[]){
   FILE *f = fopen("image.ppm", "w");         // Write image to PPM file.
   fprintf(f, "P3\n%d %d\n%d\n", w, h, 255);
 
-  #pragma omp parallel for
+//  #pragma omp parallel for ordered schedule(dynamic)
   for (int i=0; i<w*h; i++)
     fprintf(f,"%d %d %d ", toInt(c[i].x), toInt(c[i].y), toInt(c[i].z));
+
+ end = omp_get_wtime();
+ printf("Render time %fs \n",end-start);
+ fclose(f);
 }

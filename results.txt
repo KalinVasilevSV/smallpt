@@ -1,0 +1,3 @@
+max possible threads = 4 
+allocated threads = 4 
+Render time 8.914364s 
