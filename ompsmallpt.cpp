@@ -137,10 +137,10 @@ int main(int argc, char *argv[]){
    {
         printf("allocated threads = %d \n",omp_get_num_threads());
    }
-  #pragma omp for ordered schedule(static, 1)
+
+  #pragma omp for ordered schedule(static,1) private(r)
   for (int y=0; y<h; y++){                       // Loop over image rows
     fprintf(stderr,"\rRendering (%d spp) %5.2f%%",samps*4,100.*y/(h-1));
-
     for (unsigned short x=0, Xi[3]={0,0,y*y*y}; x<w; x++)   // Loop cols
       for (int sy=0, i=(h-y-1)*w+x; sy<2; sy++)     // 2x2 subpixel rows
         for (int sx=0; sx<2; sx++, r=Vec()){        // 2x2 subpixel cols
@@ -151,6 +151,7 @@ int main(int argc, char *argv[]){
                     cy*( ( (sy+.5 + dy)/2 + y)/h - .5) + cam.d;
             r = r + radiance(Ray(cam.o+d*140,d.norm()),0,Xi)*(1./samps);
           } // Camera rays are pushed ^^^^^ forward to start in interior
+
           c[i] = c[i] + Vec(clamp(r.x),clamp(r.y),clamp(r.z))*.25;
         }
   }
